@@ -16,10 +16,10 @@ class AppSession(ApplicationSession):
         idroom = ""
         password = ""
         # prosedur untuk membuat room
-        def create_room(idowner, name, idroom):
+        def create_room(idowner, name, idroom, username):
             # simpan ke database
             db, cursor = connectDB()
-            cursor.execute("""INSERT INTO room (name, owner, idroom) VALUES (%s, %s, %s)""", (name, idowner, idroom))
+            cursor.execute("""INSERT INTO room (id, name, idowner, username) VALUES (%s, %s, %s, %s)""", (idroom, name, idowner, username))
             db.commit()
             return "success"
 
@@ -27,7 +27,7 @@ class AppSession(ApplicationSession):
         def delete_room(idroom):
             # hapus room
             db, cursor = connectDB()
-            cursor.execute("""DELETE FROM room WHERE idroom={0}""".format(idroom))
+            cursor.execute("""DELETE FROM room WHERE id={0}""".format(idroom))
             db.commit()
             return "success"
 
