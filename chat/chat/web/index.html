@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <style>
+   body {
+      font-family: sans-serif;
+   }
+   h2 {
+      margin-top: 2em;
+      color: #038;
+   }
+   h3 {
+      margin-top: 1.3em;
+      color: #06c;
+   }
+   </style>
+</head>
+<body>
+   <h1>Chat App</h1>
+   <section id="home-area">
+      <input id="roomname">
+      <button onclick="create_room()">Create Room</button>
+      <br>
+      <br>
+      <section id="list">
+         <button onclick="list_room()">Reload List Room</button>
+         <table border="1" id="room-list">
+         </table>
+      </section>
+   </section>
+   <section id="chat-area" style="display:none">
+      <button onclick="leave_room()">Leave room</button>
+      <div id="all-msg"></div>
+      <input id="send-msg">
+      <button onclick="send_msg()">Send</button>
+   </section>
+
+   <script>AUTOBAHN_DEBUG = false;</script>
+   <script src="autobahn.min.jgz"></script>
+   <script src="jquery-1.11.3.min.js"></script>
+
+   <script>
+   var wsuri = (document.location.protocol === "http:" ? "ws:" : "wss:") + "//" + document.location.host + "/ws";
+   var connection = new autobahn.Connection({
+      url: wsuri,
+      realm: "realm1"
+   });
+   var session = null;
+   var roomname = null;
+   var cursubscription = null;
+   var username = "username";
+
+
+   function get_message (args) {
+      var message = args[0];
+      var sender = args[1];
+      $('#all-msg').append("<b>"+sender+"</b>");
+      $('#all-msg').append("<p>"+message+"</p>");
+
+   }
+
+   // function create_room(idowner, roomname){
+      //idowner nanti diselect dari database ketika telah membuat user
+      function create_room(){
+         var idowner = 1;
+      // var idowner = 2;
+      // var idowner = 3;
+      
+      roomname = $('#roomname').val();
+      session.subscribe('room.'+roomname, get_message).then(
+         function (sub) {
+            console.log('subscribed to '+roomname);
+            console.log(sub);
+            var idroom = sub.id;
+            session.call("room.create", [idowner, roomname, idroom]).then(
+               function (res) {
+                  console.log(res);
+                  $('#home-area').hide();
+                  $("#chat-area").show();
+                  cursubscription = sub;
+               },
+               function (err) {
+                  console.log("create_room error:", err);
+               }
+               );
+
+         },
+         function (err) {
+            console.log('failed to subscribe to topic', err);
+         }
+         );
+   }
+
+   function list_room(){
+      session.call("room.list", []).then(
+         function (res) {
+            console.log("list result:", res);
+            var rooms = JSON.parse(res);
+            $('#room-list').html("");
+            $('#room-list').append('<tr><td>Room Name</td><td>Press button to join chat</td></tr>');
+            for (var i in rooms){
+               $('#room-list tr:last').after('<tr><td>'+rooms[i].name+'</td><td><button onclick="join_room(\''+rooms[i].name+'\')">Join!</button></td></tr>');
+            }
+         },
+         function (err) {
+            console.log("list_room error:", err);
+         }
+         );   
+   }
+
+   function join_room(name){
+      roomname = name;
+      session.subscribe('room.'+roomname, get_message).then(
+         function (sub) {
+            console.log('subscribed to '+roomname);
+            $('#home-area').hide();
+            $("#chat-area").show();
+            cursubscription  = sub;
+         },
+         function (err) {
+            console.log('failed to subscribe to topic', err);
+         }
+         );
+   }
+
+   function leave_room(){
+      cursubscription.unsubscribe().then(
+         function () {
+            console.log('unsubscribe success');
+            $('#home-area').show();
+            $("#chat-area").hide();
+         },
+         function (err) {
+            console.log('failed to unsubscribe', err);
+         }
+         );
+   }
+
+   function send_msg(msg){
+      if(roomname && session){
+         console.log(roomname);
+         var msg = $("#send-msg").val();
+         $("#send-msg").val("");
+         session.publish("room."+roomname, [msg, username], {}, {exclude_me: false});
+      }
+   }
+
+   function delete_room (args, kwargs) {
+      console.log("WAMP meta event", args[1]);
+      var idroom = args[1].toString();
+      console.log(idroom);
+      session.call("room.delete", [idroom]).then(
+         function (res) {
+            console.log("delete_room :", res);
+         },
+         function (err) {
+            console.log("delete_room error:", err);
+         }
+         );  
+   }
+
+   connection.onopen = function (new_session, details) {
+      session = new_session;
+      console.log("Connected with session ID " + session.id);
+      list_room();
+
+      //subscribe on_delete of room to delete room
+      //Bila room sudah tidak memiliki subscriber maka data pada db akan dihapus
+      session.subscribe("wamp.subscription.on_delete", delete_room).then(
+         function (sub) {
+            console.log("wamp.subscription.on_delete success");
+         },
+         function (err) {
+            console.log('Failed to subscribe to wamp.subscription.on_delete '+err);
+         }
+         );
+   };
+   connection.onclose = function (reason, details) {
+      console.log("Connection lost: " + reason, details);
+   }
+   connection.open();
+
+   // window.onbeforeunload = function() {
+   //    leave_room();
+   //    setTimeout(function() {
+   //    }, 5000);
+   // };
+   </script>
+</body>
+</html>
