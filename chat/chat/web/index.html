@@ -130,7 +130,7 @@
          function (err) {
             console.log('failed to subscribe to topic', err);
          }
-         );
+      );
 }
 
 function reload_member(args, kwargs) {
@@ -286,12 +286,12 @@ connection.onopen = function (new_session, details) {
       //subscribe on_delete of room to delete room
       //Bila room sudah tidak memiliki subscriber maka data pada db akan dihapus
       session.subscribe("wamp.subscription.on_delete", delete_room).then(
-         function (sub) {
-            console.log("wamp.subscription.on_delete success");
-         },
-         function (err) {
-            console.log('Failed to subscribe to wamp.subscription.on_delete '+err);
-         }
+            function (sub) {
+               console.log("wamp.subscription.on_delete success");
+            },
+            function (err) {
+               console.log('Failed to subscribe to wamp.subscription.on_delete '+err);
+            }
          );
    };
    connection.onclose = function (reason, details) {
