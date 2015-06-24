@@ -1,0 +1,357 @@
+<html>
+
+    <head>
+
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Include roboto.css to use the Roboto web font, material.css to include the theme and ripples.css to style the ripple effect -->
+        <link href="css/roboto.min.css" rel="stylesheet">
+        <link href="css/material-fullpalette.min.css" rel="stylesheet">
+        <link href="css/ripples.min.css" rel="stylesheet">
+        <style type="text/css">
+            body {
+                margin-top: 75px;
+            }
+            .cover{
+                min-height: 400px;
+                background-image: url('images/sebangsa.png');
+                background-size: cover;
+                margin-right: 0px;
+            }
+            .main-col{
+                background-color: #f7f7f9;
+                border-right: 1px solid rgba(0,0,0,.08);
+                min-height: 400px;
+                padding-top: 10px;
+            }
+            .side-col{
+                min-height: 300px;
+            }
+            .row-danger{
+                background-color: #f44336;
+            }
+            .row-success{
+                background-color: #4caf50;
+            }
+            #nick{
+                margin-left: 15px;
+            }
+            .status{
+                margin-right: 0px;
+                text-align: center;
+                color: white;
+                font-size: 10px;
+            }
+            .btn.pull-right{
+                margin-top: 10px !important;
+                margin-right: 10px !important;
+            }
+            .loading-bar{
+                height: 4px;
+                margin-right: 0px;
+            }
+            .chatbox{
+                min-height: 300px;
+                padding: 0 15px 0 15px;
+            }
+
+            #room-members{
+                max-height: 300px;
+                overflow-x: hidden;
+            }
+
+            .navbar{
+                margin-bottom: 0px;
+            }
+
+            .msg_container_base{
+              background: #f7f7f9;
+              margin: 0;
+              padding: 0 10px 10px;
+              max-height:300px;
+              overflow-x:hidden;
+            }
+            .msg_receive{
+                padding-left:0;
+                margin-left:0;
+            }
+            .msg_sent{
+                padding-bottom:20px !important;
+                margin-right:0;
+            }
+            .messages {
+              background: white;
+              padding: 10px;
+              border-radius: 2px;
+              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+              max-width:100%;
+            }
+            .messages > p {
+                font-size: 13px;
+                margin: 0 0 0.2rem 0;
+              }
+            .messages > time {
+                font-size: 11px;
+                color: #ccc;
+            }
+            .msg_container {
+                padding: 10px;
+                overflow: hidden;
+                display: flex;
+            }
+            .avatar {
+                position: relative;
+            }
+            .base_receive > .avatar:after {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 0;
+                height: 0;
+                border: 5px solid #FFF;
+                border-left-color: rgba(0, 0, 0, 0);
+                border-bottom-color: rgba(0, 0, 0, 0);
+            }
+
+            .base_sent {
+              justify-content: flex-end;
+              align-items: flex-end;
+            }
+            .base_sent > .avatar:after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 0;
+                height: 0;
+                border: 5px solid white;
+                border-right-color: transparent;
+                border-top-color: transparent;
+                box-shadow: 1px 1px 2px rgba(black, 0.2); // not quite perfect but close
+            }
+            .msg_sent > time{
+                float: right;
+            }
+
+        </style>
+
+    </head>
+
+    <body>
+
+        <!-- Your site -->
+
+        <div class="container well" style="padding:0 0 0 15px;">
+            <div class="row cover">
+                <button class="btn btn-primary btn-fab btn-raised mdi-action-settings-ethernet pull-right" data-toggle="modal" data-target="#setupModal"></button>
+            </div>
+            <div class="row main" style="display:none;">
+
+                <div class="room" style="display:none;">
+                    <div id="room_window" class="col-md-8 main-col"></div>
+                </div>
+
+                <div class="chat" style="display:none;">
+                    <div id="chat_window" class="col-md-8 main-col" style="padding:0;">
+                        <div class="navbar navbar-default">
+                            <div class="navbar-header">
+                                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                </button>
+                                <a class="navbar-brand" href="javascript:void(0)" id="room-brand">Brand</a>
+                            </div>
+                            <div class="navbar-collapse collapse navbar-responsive-collapse">
+                                <ul class="nav navbar-nav navbar-right">
+                                    <li><button class="btn btn-primary" onclick="leave_room()"><i class="mdi-notification-sms-failed"></i></button></li>
+                                    <li><button class="btn btn-primary" onclick="show_rooms()"><i class="mdi-navigation-apps"></i></button></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="row chatbox">
+                            <div class="msg_container_base" id="chat-list">
+                            </div>
+                        </div>
+                        <div class="row">
+                              <div class="col-md-12">
+                                <div class="input-group input-group-lg">
+                                    <input id="input-message" type="text" class="form-control" style="padding-left:15px; border-top:1px solid rgba(0,0,0,.08); border-radius:0;" />
+                                  <div class="input-group-btn">
+                                    <button type="submit" class="btn btn-primary" style="border-radius:0;"><i class="mdi-content-send" onclick="send_msg()"></i></button>
+                                  </div><!-- /btn-group -->
+                                </div><!-- /input-group -->
+                              </div><!-- /.col-xs-12 -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 side-col">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 id="nick" class="text-muted" style="margin-right:0.3em;"></h3>
+                        </div>
+                        <div class="col-md-6 btn-groups">
+                           <button type="button" class="btn btn-sm btn-default pull-right" data-toggle="modal" data-target="#setupModal"><i class="mdi-action-settings-ethernet"></i></button>
+                           <button type="button" class="btn btn-sm btn-default pull-right" data-toggle="modal" data-target="#roomModal"><i class="mdi-communication-forum"></i></button>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:20px;">
+                        <div class="list-group" id="room-members" style="margin-right:15px;">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row loading-bar">
+                <div class="progress progress-striped active">
+                    <div class="progress-bar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="row status"></div>
+        </div>
+
+        <!-- Modals -->
+
+        <!-- Room modal -->
+        <div class="modal fade" id="roomModal" tabindex="-1" role="dialog" aria-labelledby="roomModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                  <!-- <h4 class="modal-title" id="roomModalLabel">Room</h4> -->
+                  <ul class="nav nav-tabs" style="margin-bottom: 15px;">
+                      <li class="active"><a href="#create" data-toggle="tab">Create</a></li>
+                      <li><a href="#join" data-toggle="tab">Join</a></li>
+                  </ul>
+                </div>
+                <div class="modal-body">
+
+                    <div id="myTabContent" class="tab-content">
+                        <div class="tab-pane fade active in" id="create">
+                            <h3> Create New Room</h3>
+                            <form id="form-create-room">
+                                <div class="form-group">
+                                  <label for="recipient-name" class="control-label">Room Name :</label>
+                                  <input type="text" class="form-control" id="input-create-room" placeholder="HotNews">
+                                </div>
+                                <div class="form-group">
+                                    <div class="togglebutton">
+                                        <label>
+                                            <input id="input-hidden" type="checkbox"> Hidden
+                                        </label>
+                                    </div>
+                                  <label for="message-text" class="control-label">Password :</label>
+                                  <input type="password" class="form-control" id="input-create-password" placeholder="Password" disabled></input>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade in" id="join">
+                            <h3> Join Secret Room</h3>
+                            <form id="form-join-room">
+                                <div class="form-group">
+                                  <label for="recipient-name" class="control-label">Room Name :</label>
+                                  <input type="text" class="form-control" id="input-joid-room" placeholder="HotNews">
+                                </div>
+                                <div class="form-group">
+                                  <label for="message-text" class="control-label">Password :</label>
+                                  <input type="password" class="form-control" id="input-join-password" placeholder="Password"></input>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                  <!-- <form>
+                    <div class="form-group">
+                      <label for="recipient-name" class="control-label">Room Name :</label>
+                      <input type="text" class="form-control" id="input-room" placeholder="HotNews">
+                    </div>
+                    <div class="form-group">
+                      <label for="message-text" class="control-label">Password :</label>
+                      <input type="password" class="form-control" id="input-password" placeholder="Password"></input>
+                    </div>
+                  </form> -->
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary" onclick="submit_room()">Submit</button>
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Setup modal -->
+        <div class="modal fade" id="setupModal" tabindex="-1" role="dialog" aria-labelledby="setupModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                  <h4 class="modal-title" id="setupModalLabel">Connect to start chat</h4>
+                </div>
+                <div class="modal-body">
+                  <form>
+                    <div class="form-group">
+                      <label for="recipient-name" class="control-label">Server :</label>
+                      <input type="text" class="form-control" id="input-server" placeholder="chat.com or 1.2.3.4">
+                    </div>
+                    <div class="form-group">
+                      <label for="message-text" class="control-label">Nick :</label>
+                      <input class="form-control" id="input-nick" placeholder="John"></input>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary" onclick="connect()">Connect</button>
+                </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Your site ends -->
+
+        <script src="js/jquery-1.10.2.min.js"></script>
+        <script src="https://autobahn.s3.amazonaws.com/autobahnjs/latest/autobahn.min.jgz"></script>
+        <script src="js/bootstrap.min.js"></script>
+
+        <script src="js/ripples.min.js"></script>
+        <script src="js/material.min.js"></script>
+
+        <script type="text/javascript" src="js/chat.js"></script>
+
+        <script>
+            AUTOBAHN_DEBUG = true;
+
+            $(document).ready(function() {
+                // This command is used to initialize some elements and make them work properly
+                $.material.init();
+
+                //for each element that is classed as 'pull-down', set its margin-top to the difference between its own height and the height of its parent
+                $('.pull-down').each(function() {
+                    $(this).css('margin-top', $(this).parent().height()-$(this).height())
+                });
+            });
+
+            $('#input-hidden').change(function () {
+                if($(this).is(":checked")){
+                    $('#input-create-password').removeAttr('disabled');
+                }else{
+                    $('#input-create-password').attr('disabled', 'disabled');
+                };
+            });
+
+            // Modals
+            // $('#myModal').on('show.bs.modal', function (event) {
+              // var button = $(event.relatedTarget); // Button that triggered the modal
+              // var content = button.data('content'); // Extract info from data-* attributes
+              // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+              // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            //   var modal = $(this);
+            //   var modal_content = $('#'+content).html();
+            //   modal.find('.modal-content').html(modal_content);
+            // });
+            
+        </script>
+    </body>
+
+</html>
