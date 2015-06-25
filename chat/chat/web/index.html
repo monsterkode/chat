@@ -65,6 +65,7 @@
    var username = null;
    var iduser = null; //session id dan idowner pada database
    var owner = false;
+   var idmember = null;
 
    function create_username(){
       username = $('#username').val();
@@ -85,7 +86,10 @@
 
    //save username to rpc
    function get_username() {
-      return username;
+      var all = {};
+      all.name = username;
+      all.id = iduser;
+      return all;
    }
 
    // var owner = false;
@@ -130,7 +134,7 @@
          function (err) {
             console.log('failed to subscribe to topic', err);
          }
-      );
+         );
 }
 
 function reload_member(args, kwargs) {
@@ -151,8 +155,6 @@ function reload_member(args, kwargs) {
       function (err) {
          console.log('failed to get session subscription', err);
       });
-   
-
 }
 
 function list_member(){
@@ -163,12 +165,11 @@ function list_member(){
          $('#member').html("");
          $('#member').append('<tr><td>Member Name</td><td>Press button to kick member</td></tr>');
          for (var i in res){
-            var idmember = res[i];
+            idmember = res[i];
             if(idmember != iduser){
                session.call("username."+idmember, []).then(
                   function (res2) {
-                     console.log(res2);
-                     $('#member tr:last').after('<tr><td>'+res2+'</td><td><button onclick="kick_member(\''+idmember+'\')">Kick!</button></td></tr>');
+                     $('#member tr:last').after('<tr><td>'+res2.name+'</td><td><button onclick="kick_member(\''+res2.id+'\')">Kick!</button></td></tr>');
                   },
                   function (err) {
                      console.log('failed to get session subscription', err);
@@ -242,6 +243,8 @@ function leave_room(){
          console.log('unsubscribe success');
          $('#home-area').show();
          $("#chat-area").hide();
+         $('#all-msg').html("");
+         $("#member-area").hide();
       },
       function (err) {
          console.log('failed to unsubscribe', err);
@@ -286,12 +289,12 @@ connection.onopen = function (new_session, details) {
       //subscribe on_delete of room to delete room
       //Bila room sudah tidak memiliki subscriber maka data pada db akan dihapus
       session.subscribe("wamp.subscription.on_delete", delete_room).then(
-            function (sub) {
-               console.log("wamp.subscription.on_delete success");
-            },
-            function (err) {
-               console.log('Failed to subscribe to wamp.subscription.on_delete '+err);
-            }
+         function (sub) {
+            console.log("wamp.subscription.on_delete success");
+         },
+         function (err) {
+            console.log('Failed to subscribe to wamp.subscription.on_delete '+err);
+         }
          );
    };
    connection.onclose = function (reason, details) {
