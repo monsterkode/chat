@@ -11,16 +11,15 @@ class AppSession(ApplicationSession):
 
     @inlineCallbacks
     def onJoin(self, details):
-        idowner = ""
-        name = ""
-        idroom = ""
-        password = ""
+
+
         # prosedur untuk membuat room
-        def create_room(idowner, name, idroom, username):
+        def create_room(idroom, name, idowner, username):
             # simpan ke database
             db, cursor = connectDB()
             cursor.execute("""INSERT INTO room (id, name, idowner, username) VALUES (%s, %s, %s, %s)""", (idroom, name, idowner, username))
             db.commit()
+            self.publish('chat.on_room_created', 'success')
             return "success"
 
         # prosedur untuk menghapus room
@@ -29,6 +28,7 @@ class AppSession(ApplicationSession):
             db, cursor = connectDB()
             cursor.execute("""DELETE FROM room WHERE id={0}""".format(idroom))
             db.commit()
+            self.publish('chat.on_room_deleted', 'success')
             return "success"
 
         # prosedur untuk mengambil list room
@@ -39,8 +39,13 @@ class AppSession(ApplicationSession):
             return json.dumps(rows, ensure_ascii=False)
 
         # REGISTER a procedure for remote calling
-        self.register(create_room, 'room.create')
-        self.register(list_room, 'room.list')
-        self.register(delete_room, 'room.delete')
+        reg_create_room = yield self.register(create_room, 'chat.room.create')
+        print("procedure create_room registered")
+
+        reg_list_room = yield self.register(list_room, 'chat.room.list')
+        print("procedure list_room registered")
+        
+        reg_delete_room = yield self.register(delete_room, 'chat.room.delete')
+        print("procedure delete_room registered")
 
         
